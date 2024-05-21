@@ -1,0 +1,89 @@
+class Employee:
+    def _init_(self, age, name, employee_position, organization_type, no_of_child, child_edu_expenses):
+        self.age = age
+        self.name = name
+        self.employee_position = employee_position  # should be regular or contract employee
+        self.organization_type = organization_type  # should be government, private, or corporate organization
+        self.no_of_child = no_of_child
+        self.child_edu_expenses = child_edu_expenses
+
+class TaxableIncome:
+    def _init_(self, income, deduction, no_of_child=0, child_edu_expenses=0, bonus=0):
+        self.employee_income = income
+        self.deduction = deduction
+        self.no_of_child = no_of_child
+        self.child_edu_expenses = child_edu_expenses
+        self.bonus = bonus
+
+    def calculate_taxable_income(self):
+        taxable_income = self.employee_income + self.bonus - self.deduction - self.child_edu_expenses
+        return taxable_income
+
+class PersonalIncomeTax(Employee):
+    def _init_(self, age, name, employee_position, organization_type, no_of_child, child_edu_expenses, taxable_income):
+        super()._init_(age, name, employee_position, organization_type, no_of_child, child_edu_expenses)
+        self.taxable_income = taxable_income
+
+    def calculate_personal_tax(self):
+        if self.age < 18:
+            return "Not eligible for tax payment"
+        elif self.employee_position == "contract" and self.organization_type == "government":
+            return (f"{self.no_of_child} child(ren) education expenses: {self.child_edu_expenses}. "
+                    "As a contract employee in a government organization, GIS and PFF deductions are not allowed for tax deductions.")
+        
+        taxable_income = self.taxable_income
+
+        if taxable_income <= 300000:
+            tax = 0
+        elif taxable_income <= 400000:
+            tax = (taxable_income - 300000) * 0.1
+        elif taxable_income <= 650000:
+            tax = 10000 + (taxable_income - 400000) * 0.15
+        elif taxable_income <= 1000000:
+            tax = 37500 + (taxable_income - 650000) * 0.2
+        elif taxable_income <= 1500000:
+            tax = 97500 + (taxable_income - 1000000) * 0.25
+        else:
+            tax = 197500 + (taxable_income - 1500000) * 0.3
+
+        if tax >= 1000000:
+            tax *= 1.1
+
+        if self.no_of_child > 0:
+            tax -= self.child_edu_expenses
+
+        return f"Tax: {tax}"
+
+class TaxCalculator:
+    def get_user_input(self):
+        try:
+            age = int(input("Enter your age: "))
+            name = input("Enter employee name: ")
+            income = float(input("Enter employee income: "))
+            if income >= 1000000:
+                surcharge = income * 0.1
+                total_tax_amount = income + surcharge
+                print(f"Total Tax Amount: {total_tax_amount}")
+            employee_position = input("Enter employee position (contract/regular): ")
+            organization_type = input("Enter organization type that you work (government/private/corporate): ")
+            no_of_child = int(input("Enter number of children: "))
+            child_edu_expenses = 0
+            if no_of_child > 0:
+                child_edu_expenses = float(input("Enter expenses per child: ")) * no_of_child
+            deduction = float(input("Enter your total PFF and GIS: "))
+            bonus = float(input("Enter your Bonus: "))
+
+            taxable_income_obj = TaxableIncome(income, deduction, no_of_child, child_edu_expenses, bonus)
+            taxable_income = taxable_income_obj.calculate_taxable_income()
+            
+            personal_tax = PersonalIncomeTax(age, name, employee_position, organization_type, no_of_child, child_edu_expenses, taxable_income)
+            total_tax = personal_tax.calculate_personal_tax()
+            
+            print(f"Total tax payable: {total_tax}")
+
+        except ValueError:
+            print("Invalid input.")
+
+if __name__ == "_main_":
+    tax_calculator = TaxCalculator()
+    tax_calculator.get_user_input()
